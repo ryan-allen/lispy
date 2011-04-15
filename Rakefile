@@ -6,5 +6,9 @@ task :default do
 end
 
 task :run_tests do 
-  require 'test/lispy_test'
+  if RUBY_VERSION =~ /^1.9/
+    require_relative 'test/lispy_test' # for fuck's sake.
+  else
+    require 'test/lispy_test'
+  end
 end

@@ -18,14 +18,34 @@ class LispyTest < Test::Unit::TestCase
       end
     end
     
-    expected_output = [[:setup, {:workers=>30, :connections=>1024}],
-                       [:http, {:access_log=>:off}],
-                       [[:server, {:listen=>80}],
-                        [[:location, "/"],
-                         [[:doc_root, "/var/www/website"]],
-                         [:location, "~ .php$"],
-                         [[:fcgi, {:port=>8877}], [:script_root, "/var/www/website"]]]]]
 
-     assert_equal output, expected_output 
+    expected = [[:setup, {:workers=>30, :connections=>1024}],
+                 [:http,
+                  {:access_log=>:off},
+                  [[:server,
+                    {:listen=>80},
+                    [[:location, "/", [[:doc_root, "/var/www/website"]]],
+                     [:location,
+                      "~ .php$",
+                      [[:fcgi, {:port=>8877}], [:script_root, "/var/www/website"]]]]]]]]
+
+     assert_equal expected, output
+  end
+
+  def test_moar_lispy
+    output = Lispy.new.to_data do
+      setup
+      setup do
+        lol
+        lol do
+          hi
+          hi
+        end
+      end
+    end
+
+    expected = [[:setup, []], [:setup, [], [[:lol, []], [:lol, [], [[:hi, []], [:hi, []]]]]]]
+
+    assert_equal expected, output
   end
 end
