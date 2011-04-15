@@ -1,5 +1,5 @@
 class Lispy
-  VERSION = '0.0.1'
+  VERSION = '0.0.2'
   class Builder
     def _(&block)
       @output = []
