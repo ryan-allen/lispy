@@ -12,7 +12,7 @@ class Lispy
     @scope.last << [sym, args]
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
-      scope.last.last << []
+      @scope.last.last << []
       @scope.push(@scope.last.last.last)
       instance_exec(&block)
       @scope.pop
