@@ -1,5 +1,5 @@
 class Lispy
-  VERSION = '0.0.3'
+  VERSION = '0.0.4'
 
   @@methods_to_keep = /^__/, /class/, /instance_/, /method_missing/, /object_id/
 
