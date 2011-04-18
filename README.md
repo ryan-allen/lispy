@@ -2,7 +2,7 @@
 
 Yeah, right. Get a room, you two.
 
-![Nothing to do with LISP, Problem?](http://1.bp.blogspot.com/_Tbc9D_HLbrs/TR3Vi-dyOnI/AAAAAAAAAOE/n8zDvBlzH3I/s320/troll-face_design.png)!
+![Nothing to do with LISP, Problem?](http://1.bp.blogspot.com/_Tbc9D_HLbrs/TR3Vi-dyOnI/AAAAAAAAAOE/n8zDvBlzH3I/s320/troll-face_design.png)
 
 ## The backstory.
 
