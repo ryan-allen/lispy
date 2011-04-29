@@ -12,14 +12,19 @@ class Lispy
     @scope.last << [sym, args]
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
-      @scope.last.last << []
-      @scope.push(@scope.last.last.last)
-      instance_exec(&block)
-      @scope.pop
+      if @remember_blocks_starting_with.include? sym
+        @scope.last.last << block
+      else
+        @scope.last.last << []
+        @scope.push(@scope.last.last.last)
+        instance_exec(&block)
+        @scope.pop
+      end
     end
   end
 
-  def to_data(&block)
+  def to_data(opts = {}, &block)
+    @remember_blocks_starting_with =  Array(opts[:retain_blocks_for])
     _(&block)
     @output
   end
