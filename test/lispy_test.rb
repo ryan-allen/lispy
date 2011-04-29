@@ -48,4 +48,28 @@ class LispyTest < Test::Unit::TestCase
 
     assert_equal expected, output
   end
+
+  def lispy_but_conditionally_preserving_procs
+    Lispy.new.to_data(:retain_blocks_for => [:Given, :When, :Then]) do
+      Scenario "My first awesome scenario" do
+        Given "teh shiznit" do
+          #shiznit
+        end
+
+        When "I do something" do
+          #komg.do_something
+        end
+
+        Then "this is pending"
+      end
+    end
+  end
+
+  def test_conditionally_preserving_procs
+    quasi_sexp = lispy_but_conditionally_preserving_procs
+    assert_equal :Scenario, quasi_sexp[0][0]
+    assert_equal "My first awesome scenario", quasi_sexp[0][1]
+    assert_equal :Given, quasi_sexp[0][2][0][0]
+    assert_instance_of Proc, quasi_sexp[0][2][0].last
+  end
 end
