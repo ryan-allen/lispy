@@ -72,4 +72,35 @@ class LispyTest < Test::Unit::TestCase
     assert_equal :Given, quasi_sexp[0][2][0][0]
     assert_instance_of Proc, quasi_sexp[0][2][0].last
   end
+
+  def test_opt_in_parsing
+    l = Lispy.new
+    begin
+      l.to_data(:only => [:Foo]) do
+        Foo "bar" do
+          blech
+        end
+      end
+    rescue 
+      assert_instance_of NoMethodError, $!
+      assert_match "blech", $!.message
+    end
+  end
+
+  def test_opt_out_parsing
+    l = Lispy.new
+    begin
+      l.to_data(:except => [:bar]) do
+        foo "bar" do
+          blech
+        end
+
+        bar
+      end
+      flunk
+    rescue
+      assert_instance_of NoMethodError, $!
+      assert_match "bar", $!.message
+    end
+  end
 end
