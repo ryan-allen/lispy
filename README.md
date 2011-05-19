@@ -25,17 +25,24 @@ I've written a number of Ruby libraries in my time. I've used many, many more. W
 
 Take the following example:
 
-    Lispy.new.to_data do
+    Lispy.configure
+    class SomeUsageOfMyAwesomeDSL
+      Lispy.extend
+
       fart 1
       fart 2
       fart 3, 4
       fart
       fart :where => :in_bed
     end
+    SomeUsageOfMyAwesomeDSL.output
 
 This will return `[[:fart, 1], [:fart, 2], [:fart, [3, 4]], [:fart, []], [:fart, {:where => :in_bed}]]`. It looks somewhat like an abstract syntax tree (I think). Let's take an example with nesting:
 
-    Lispy.new.to_data do
+    Lispy.configure
+    class ToDoList
+      Lispy.extend
+
       todo_list do
         item :priority => :high do
           desc 'Take out the trash, it stinks.'
@@ -53,6 +60,7 @@ This will return `[[:fart, 1], [:fart, 2], [:fart, [3, 4]], [:fart, []], [:fart,
         person '...'
       end
     end
+    ToDoList.output
 
 The pretty printed output is this, but before you continue, I ask you to take a deep breath, and remember that you are a programmer and that you have been writing Ruby for too long to be able to look at anything else than ActiveRecord declarations and say something along the lines of "WTF IS THIS, IT IS BAD CODE OMFG I AM TELLING!!!1". Yes, once upon a time you were able to think as a programmer and once you had patience! Now, that output:
 
