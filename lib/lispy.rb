@@ -50,14 +50,6 @@ module Lispy
     end
   end
 
-  def to_data(opts = {}, &block)
-    @@remember_blocks_starting_with =  Array(opts[:retain_blocks_for])
-    @@only = Array(opts[:only])
-    @@exclude = Array(opts[:except])
-    _(&block)
-    @@output
-  end
-  
 private
 
   def nest(&block)
@@ -65,13 +57,5 @@ private
     @scope.push(@scope.last.last.last)
     instance_exec(&block)
     @scope.pop
-  end
-
-  
-  def _(&block)
-    @@output ||= []
-    @scope ||= [@@output]
-    instance_exec(&block)
-    @@output
   end
 end
