@@ -21,20 +21,6 @@ class LispyTest < Test::Unit::TestCase
   end
   @@whatever = Whatever.output
 
-  def test_lispy
-    expected = [[:setup, {:workers=>30, :connections=>1024}],
-                 [:http,
-                  {:access_log=>:off},
-                  [[:server,
-                    {:listen=>80},
-                    [[:location, "/", [[:doc_root, "/var/www/website"]]],
-                     [:location,
-                      "~ .php$",
-                      [[:fcgi, {:port=>8877}], [:script_root, "/var/www/website"]]]]]]]]
-
-     assert_equal expected, @@whatever
-  end
-
   class MoarLispy
     extend Lispy
     acts_lispy
@@ -49,12 +35,6 @@ class LispyTest < Test::Unit::TestCase
     end
   end
   @@moar_lispy = MoarLispy.output
-
-  def test_moar_lispy
-    expected = [[:setup, []], [:setup, [], [[:lol, []], [:lol, [], [[:hi, []], [:hi, []]]]]]]
-
-    assert_equal expected, @@moar_lispy
-  end
 
   class RetainBlocks
     extend Lispy
@@ -74,12 +54,17 @@ class LispyTest < Test::Unit::TestCase
   end
   @@retain_blocks = RetainBlocks.output
 
-  def test_conditionally_preserving_procs
-    quasi_sexp = @@retain_blocks
-    assert_equal :Scenario, quasi_sexp[0][0]
-    assert_equal "My first awesome scenario", quasi_sexp[0][1]
-    assert_equal :Given, quasi_sexp[0][2][0][0]
-    assert_instance_of Proc, quasi_sexp[0][2][0].last
+  begin
+    class OptInParsing
+      extend Lispy
+      acts_lispy :only => [:Foo]
+
+      Foo "bar" do
+        blech
+      end
+    end
+  rescue 
+    @@opt_in_parsing_error = $!
   end
 
   begin
@@ -95,26 +80,37 @@ class LispyTest < Test::Unit::TestCase
     @@opt_in_parsing_error = $!
   end
 
+  def test_lispy
+    expected = [__FILE__, [__LINE__.to_s, :setup, {:workers=>30, :connections=>1024}],
+                 [__LINE__.to_s, :http,
+                  {:access_log=>:off},
+                  [[__LINE__.to_s, :server,
+                    {:listen=>80},
+                    [[__LINE__.to_s, :location, "/", [[__LINE__.to_s, :doc_root, "/var/www/website"]]],
+                     [__LINE__.to_s, :location,
+                      "~ .php$",
+                      [[__LINE__.to_s, :fcgi, {:port=>8877}], [__LINE__.to_s, :script_root, "/var/www/website"]]]]]]]]
+
+     assert_equal expected, @@whatever
+  end
+
+  def test_moar_lispy
+    expected = [__FILE__, [[__LINE__.to_s, :setup, []], [__LINE__.to_s, :setup, [], [[__LINE__.to_s, :lol, []], [__LINE__.to_s, :lol, [], [[__LINE__.to_S, :hi, []], [__LINE__.to_s, :hi, []]]]]]]]
+
+    assert_equal expected, @@moar_lispy
+  end
+
+  def test_conditionally_preserving_procs
+    quasi_sexp = @@retain_blocks
+    assert_equal :Scenario, quasi_sexp[1][0]
+    assert_equal "My first awesome scenario", quasi_sexp[1][1]
+    assert_equal :Given, quasi_sexp[1][2][0][0]
+    assert_instance_of Proc, quasi_sexp[1][2][0].last
+  end
+
   def test_opt_in_parsing
     assert_instance_of NoMethodError, @@opt_in_parsing_error
     assert_match "blech", @@opt_in_parsing_error.message
-  end
-
-  begin
-    @@opt_out_parsing_fail = false
-    class OptOutParsing
-      extend Lispy 
-      acts_lispy :except => [:bar]
-
-      foo "bar" do
-        blech
-      end
-
-      bar
-    end
-    @@opt_out_parsing_fail = true
-  rescue
-    @@opt_out_parsing_error = $!
   end
 
   def test_opt_out_parsing

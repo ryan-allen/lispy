@@ -1,5 +1,5 @@
 module Lispy
-  VERSION = '0.1.0'
+  VERSION = '0.1.1'
 
   METHODS_TO_KEEP = /^__/, /class/, /instance_/, /method_missing/, /object_id/
 
@@ -11,7 +11,7 @@ module Lispy
     @@remember_blocks_starting_with = Array(opts[:retain_blocks_for])
     @@only = Array(opts[:only])
     @@exclude = Array(opts[:except])
-    @@output = []
+    @@output = [__FILE__]
   end
 
   def output
@@ -28,7 +28,8 @@ module Lispy
 
     args = (args.length == 1 ? args.first : args)
     @scope ||= [@@output]
-    @scope.last << [sym, args]
+    caller[0] =~ (/.*:(.*):in?/)
+    @scope.last << [$1, sym, args]
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
       if @@remember_blocks_starting_with.include? sym
