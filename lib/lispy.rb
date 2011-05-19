@@ -1,5 +1,5 @@
 module Lispy
-  VERSION = '0.1.1'
+  VERSION = '0.1.2'
 
   METHODS_TO_KEEP = /^__/, /class/, /instance_/, /method_missing/, /object_id/
 
@@ -11,7 +11,8 @@ module Lispy
     @@remember_blocks_starting_with = Array(opts[:retain_blocks_for])
     @@only = Array(opts[:only])
     @@exclude = Array(opts[:except])
-    @@output = [__FILE__]
+    @@output = []
+    @@file = nil
   end
 
   def output
@@ -19,6 +20,12 @@ module Lispy
   end
 
   def method_missing(sym, *args, &block)
+    caller[0] =~ (/(.*):(.*):in?/)
+    unless @@file
+      @@file = $1
+      @@output.unshift @@file
+    end
+
     unless @@only.empty? || @@only.include?(sym)
       fail(NoMethodError, sym.to_s) 
     end
@@ -28,8 +35,7 @@ module Lispy
 
     args = (args.length == 1 ? args.first : args)
     @scope ||= [@@output]
-    caller[0] =~ (/.*:(.*):in?/)
-    @scope.last << [$1, sym, args]
+    @scope.last << [$2, sym, args]
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
       if @@remember_blocks_starting_with.include? sym
