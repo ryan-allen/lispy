@@ -2,9 +2,9 @@ require 'test/unit'
 require 'lispy'
 
 class LispyTest < Test::Unit::TestCase
-  Lispy.configure
   class Whatever
     extend Lispy
+    acts_lispy
 
     setup :workers => 30, :connections => 1024
     http :access_log => :off do
@@ -35,9 +35,9 @@ class LispyTest < Test::Unit::TestCase
      assert_equal expected, @@whatever
   end
 
-  Lispy.configure
   class MoarLispy
     extend Lispy
+    acts_lispy
 
     setup
     setup do
@@ -56,9 +56,9 @@ class LispyTest < Test::Unit::TestCase
     assert_equal expected, @@moar_lispy
   end
 
-  Lispy.configure(:retain_blocks_for => [:Given, :When, :Then])
   class RetainBlocks
     extend Lispy
+    acts_lispy :retain_blocks_for => [:Given, :When, :Then]
 
     Scenario "My first awesome scenario" do
       Given "teh shiznit" do
@@ -82,10 +82,10 @@ class LispyTest < Test::Unit::TestCase
     assert_instance_of Proc, quasi_sexp[0][2][0].last
   end
 
-  Lispy.configure(:only => [:Foo])
   begin
     class OptInParsing
       extend Lispy
+      acts_lispy :only => [:Foo]
 
       Foo "bar" do
         blech
@@ -100,11 +100,11 @@ class LispyTest < Test::Unit::TestCase
     assert_match "blech", @@opt_in_parsing_error.message
   end
 
-  Lispy.configure(:except => [:bar])
   begin
     @@opt_out_parsing_fail = false
     class OptOutParsing
       extend Lispy 
+      acts_lispy :except => [:bar]
 
       foo "bar" do
         blech
