@@ -2,11 +2,7 @@ require 'test/unit'
 require 'lispy'
 
 class LispyTest < Test::Unit::TestCase
-  def teardown
-    Lispy.reset
-  end
-
-  Lispy.reset
+  Lispy.configure
   class Whatever
     extend Lispy
 
@@ -39,7 +35,7 @@ class LispyTest < Test::Unit::TestCase
      assert_equal expected, @@whatever
   end
 
-  Lispy.reset
+  Lispy.configure
   class MoarLispy
     extend Lispy
 
@@ -60,7 +56,6 @@ class LispyTest < Test::Unit::TestCase
     assert_equal expected, @@moar_lispy
   end
 
-  Lispy.reset
   Lispy.configure(:retain_blocks_for => [:Given, :When, :Then])
   class RetainBlocks
     extend Lispy
@@ -87,7 +82,6 @@ class LispyTest < Test::Unit::TestCase
     assert_instance_of Proc, quasi_sexp[0][2][0].last
   end
 
-  Lispy.reset
   Lispy.configure(:only => [:Foo])
   begin
     class OptInParsing
@@ -106,7 +100,6 @@ class LispyTest < Test::Unit::TestCase
     assert_match "blech", @@opt_in_parsing_error.message
   end
 
-  Lispy.reset
   Lispy.configure(:except => [:bar])
   begin
     @@opt_out_parsing_fail = false
