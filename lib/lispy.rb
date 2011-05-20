@@ -19,12 +19,17 @@ module Lispy
     @@output
   end
 
-  def method_missing(sym, *args, &block)
-    caller[0] =~ (/(.*):(.*):in?/)
+  def file=(file)
     unless @@file
-      @@file = $1
+      @@file = file
       @@output.unshift @@file
     end
+  end
+
+  def method_missing(sym, *args, &block)
+    caller[0] =~ (/(.*):(.*):in?/)
+    file, line = $1, $2
+    self.file = file
 
     unless @@only.empty? || @@only.include?(sym)
       fail(NoMethodError, sym.to_s) 
