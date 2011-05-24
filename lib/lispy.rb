@@ -1,4 +1,7 @@
 module Lispy
+  class Scope < Struct.new(:expressions); end
+  class Expression < Struct.new(:symbol, :args, :lineno, :proc); end
+
   VERSION = '0.1.2'
 
   METHODS_TO_KEEP = /^__/, /class/, /instance_/, /method_missing/, /object_id/
@@ -13,10 +16,11 @@ module Lispy
     @@exclude = Array(opts[:except])
     @@output = []
     @@file = nil
+    @stack = []
   end
 
   def output
-    @@output
+    [@@file, @current_scope.expressions]
   end
 
   def file=(file)
@@ -28,10 +32,10 @@ module Lispy
 
   def method_missing(sym, *args, &block)
     caller[0] =~ (/(.*):(.*):in?/)
-    file, line = $1, $2
+    file, lineno = $1, $2
     self.file = file
 
-    unless @@only.empty? || @@only.include?(sym)
+    if !@@only.empty? && !@@only.include?(sym)
       fail(NoMethodError, sym.to_s) 
     end
     if !@@exclude.empty? && @@exclude.include?(sym)
@@ -39,12 +43,12 @@ module Lispy
     end
 
     args = (args.length == 1 ? args.first : args)
-    @scope ||= [@@output]
-    @scope.last << [$2, sym, args]
+    @current_scope ||= Scope.new([])
+    @current_scope.expressions << Expression.new(sym, args, lineno)
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
       if @@remember_blocks_starting_with.include? sym
-        @scope.last.last << block
+        @current_scope.expressions.last.proc = block
       else
         nest(&block)
       end
@@ -52,11 +56,15 @@ module Lispy
   end
 
 private
-
   def nest(&block)
-    @scope.last.last << []
-    @scope.push(@scope.last.last.last)
+    @stack.push @current_scope
+
+    new_scope = Scope.new([])
+    @current_scope.expressions << new_scope
+    @current_scope = new_scope
+
     instance_exec(&block)
-    @scope.pop
+
+    @current_scope = @stack.pop
   end
 end
