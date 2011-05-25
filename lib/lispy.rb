@@ -21,7 +21,9 @@ module Lispy
   end
 
   def output
-    @@output.expressions = @current_scope.expressions
+    if @current_scope
+      @@output.expressions = @current_scope.expressions
+    end
     @@output
   end
 
