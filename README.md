@@ -22,6 +22,24 @@ I've written a number of Ruby libraries in my time. I've used many, many more. W
 * Allow library authors to dream up APIs and implement them without entering Ruby metaprogramming hell (it is a real place).
 
 ## Example
+    class Feature < Test::Unit::TestCase
+      PROC_KEYWORDS = [:Given, :When, :Then, :And]
+      KEYWORDS = [:Scenario, :Tag] + PROC_KEYWORDS
+
+      extend Lispy
+      acts_lispy :only => KEYWORDS, :retain_blocks_for => PROC_KEYWORDS
+
+      # Everything after this gets lispyified
+
+      Scenario "this gets lispyified" do
+        Given "something" do
+        end
+
+        Then "test something exists" do
+          fail "ohai"
+        end
+      end
+    end
 
     require 'rubygems'
     require 'awesome_print'
