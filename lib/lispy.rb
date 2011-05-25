@@ -1,6 +1,7 @@
 module Lispy
   class Scope < Struct.new(:expressions); end
   class Expression < Struct.new(:symbol, :args, :lineno, :proc, :scope); end
+  class Output < Struct.new(:file, :expressions); end
 
   VERSION = '0.2.0'
 
@@ -14,19 +15,20 @@ module Lispy
     @@remember_blocks_starting_with = Array(opts[:retain_blocks_for])
     @@only = Array(opts[:only])
     @@exclude = Array(opts[:except])
-    @@output = []
+    @@output = Output.new
     @@file = nil
     @stack = []
   end
 
   def output
-    [@@file, @current_scope.expressions]
+    @@output.expressions = @current_scope.expressions
+    @@output
   end
 
   def file=(file)
     unless @@file
       @@file = file
-      @@output.unshift @@file
+      @@output.file = @@file
     end
   end
 
