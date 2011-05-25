@@ -13,7 +13,6 @@ class Feature < Test::Unit::TestCase
 
   Scenario "this gets lispyified" do
     Given "something" do
-      @something = Factory(:something)
     end
 
     Then "test something exists" do
@@ -27,40 +26,57 @@ require 'awesome_print'
 ap Feature.output
 
 Feature.class_eval do
-  # manually execute "Given" and "Then" 
+  # manually execute "Given" and "Then"
   def test_something
-    instance_eval &Feature.output[0][2][0][2]
-    instance_eval &Feature.output[0][2][1][2]
+    scenario = Feature.output.expressions.first
+    steps = scenario.scope.expressions
+    instance_eval &steps[0].proc
+    instance_eval &steps[1].proc
   end
 end
 
 # OUTPUTS:
-# [
-#     [0] [
-#         [0] :Scenario,
-#         [1] "this gets lispyified",
-#         [2] [
-#             [0] [
-#                 [0] :Given,
-#                 [1] "something",
-#                 [2] #<Proc:0x000001010d8ea8@feature.rb:15>
-#             ],
-#             [1] [
-#                 [0] :Then,
-#                 [1] "test something exists",
-#                 [2] #<Proc:0x000001010d8e08@feature.rb:19>
-#             ]
-#         ]
+# ➜  example git:(no_more_last_last_last) ✗ ruby feature.rb
+# {
+#            :file => "feature.rb",
+#     :expressions => [
+#         [0] {
+#             :symbol => :Scenario,
+#               :args => "this gets lispyified",
+#             :lineno => "14",
+#               :proc => nil,
+#              :scope => {
+#                 :expressions => [
+#                     [0] {
+#                         :symbol => :Given,
+#                           :args => "something",
+#                         :lineno => "15",
+#                           :proc => #<Proc:0x000001010e9140@feature.rb:15>,
+#                          :scope => nil
+#                     },
+#                     [1] {
+#                         :symbol => :Then,
+#                           :args => "test something exists",
+#                         :lineno => "18",
+#                           :proc => #<Proc:0x000001010e8ec0@feature.rb:18>,
+#                          :scope => nil
+#                     }
+#                 ]
+#             }
+#         }
 #     ]
-# ]
+# }
 # Loaded suite feature
 # Started
 # E
-# Finished in 0.001703 seconds.
-# 
+# Finished in 0.006305 seconds.
+#
 #   1) Error:
 # test_something(Feature):
-# NoMethodError: undefined method `Factory' for #<Feature:0x000001008578b0>
-#     feature.rb:16:in `block (2 levels) in <class:Feature>'
-#     feature.rb:32:in `instance_eval'
-#     feature.rb:32:in `test_something'
+# RuntimeError: ohai
+#     feature.rb:19:in `block (2 levels) in <class:Feature>'
+#     feature.rb:34:in `instance_eval'
+#     feature.rb:34:in `test_something'
+#
+# 1 tests, 0 assertions, 0 failures, 1 errors, 0 skips
+#
