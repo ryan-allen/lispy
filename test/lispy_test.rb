@@ -86,21 +86,25 @@ class LispyTest < Test::Unit::TestCase
       __FILE__,
       [
         Lispy::Expression.new(:setup, {:workers=>30, :connections=>1024}, "9"),
-        Lispy::Expression.new(:http, {:access_log =>:off}, "10"),
-        Lispy::Scope.new.tap { |s1| s1.expressions = [
-          Lispy::Expression.new(:server, {:listen=>80}, "11"),
-          Lispy::Scope.new.tap { |s2| s2.expressions = [
-            Lispy::Expression.new(:location, '/', "12"),
-            Lispy::Scope.new.tap { |s3| s3.expressions = [
-              Lispy::Expression.new(:doc_root, '/var/www/website', "13")
-            ]},
-            Lispy::Expression.new(:location, '~ .php$', "15"),
-            Lispy::Scope.new.tap { |s4| s4.expressions = [
-              Lispy::Expression.new(:fcgi, {:port => 8877}, "16"),
-              Lispy::Expression.new(:script_root, '/var/www/website', "17")
-            ]}
+        Lispy::Expression.new(:http, {:access_log =>:off}, "10", nil,
+          Lispy::Scope.new.tap { |s1| s1.expressions = [
+            Lispy::Expression.new(:server, {:listen=>80}, "11", nil,
+              Lispy::Scope.new.tap { |s2| s2.expressions = [
+                Lispy::Expression.new(:location, '/', "12", nil,
+                  Lispy::Scope.new.tap { |s3| s3.expressions = [
+                    Lispy::Expression.new(:doc_root, '/var/www/website', "13")
+                  ]}
+                ),
+                Lispy::Expression.new(:location, '~ .php$', "15", nil,
+                  Lispy::Scope.new.tap { |s4| s4.expressions = [
+                    Lispy::Expression.new(:fcgi, {:port => 8877}, "16"),
+                    Lispy::Expression.new(:script_root, '/var/www/website', "17")
+                  ]}
+                )
+              ]}
+            )
           ]}
-        ]},
+        ),
         Lispy::Expression.new(:ohai, [], "21")
       ]
     ]

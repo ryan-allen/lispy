@@ -1,8 +1,8 @@
 module Lispy
   class Scope < Struct.new(:expressions); end
-  class Expression < Struct.new(:symbol, :args, :lineno, :proc); end
+  class Expression < Struct.new(:symbol, :args, :lineno, :proc, :scope); end
 
-  VERSION = '0.1.2'
+  VERSION = '0.2.0'
 
   METHODS_TO_KEEP = /^__/, /class/, /instance_/, /method_missing/, /object_id/
 
@@ -36,7 +36,7 @@ module Lispy
     self.file = file
 
     if !@@only.empty? && !@@only.include?(sym)
-      fail(NoMethodError, sym.to_s) 
+      fail(NoMethodError, sym.to_s)
     end
     if !@@exclude.empty? && @@exclude.include?(sym)
       fail(NoMethodError, sym.to_s)
@@ -60,7 +60,7 @@ private
     @stack.push @current_scope
 
     new_scope = Scope.new([])
-    @current_scope.expressions << new_scope
+    @current_scope.expressions.last.scope = new_scope
     @current_scope = new_scope
 
     instance_exec(&block)
