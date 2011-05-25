@@ -1,13 +1,5 @@
 # LISPY
 
-Yeah, right. Get a room, you two.
-
-![Nothing to do with LISP, Problem?](http://1.bp.blogspot.com/_Tbc9D_HLbrs/TR3Vi-dyOnI/AAAAAAAAAOE/n8zDvBlzH3I/s320/troll-face_design.png)
-
-## The backstory.
-
-I've written a number of Ruby libraries in my time. I've used many, many more. Wait, let's back up a bit.
-
 ## Assumptions.
 
 * People love libraries like Sinatra and ActiveRecord and Babushka and AASM and (name your favourite Ruby library).
@@ -18,19 +10,20 @@ I've written a number of Ruby libraries in my time. I've used many, many more. W
 
 ## Goals.
 
-* Decouple the 'pretty Ruby junk' from the (hopefully) clean and explicit implementation that makes the library do it's job.
+* Decouple the language definition of an internal DSL from its implementation
 * Allow library authors to dream up APIs and implement them without entering Ruby metaprogramming hell (it is a real place).
 
 ## Example
     class Feature < Test::Unit::TestCase
+      # Configuring lispy to geenrate an AST for our language
+
       PROC_KEYWORDS = [:Given, :When, :Then, :And]
       KEYWORDS = [:Scenario, :Tag] + PROC_KEYWORDS
 
       extend Lispy
       acts_lispy :only => KEYWORDS, :retain_blocks_for => PROC_KEYWORDS
 
-      # Everything after this gets lispyified
-
+      # Using our language
       Scenario "this gets lispyified" do
         Given "something" do
         end
@@ -41,12 +34,15 @@ I've written a number of Ruby libraries in my time. I've used many, many more. W
       end
     end
 
+    # Barfing out the AST for the above
     require 'rubygems'
     require 'awesome_print'
     ap Feature.output
 
+    # Example 'interpreter' for the AST generated above
+    # Executes the block on the Given and Then from above sequentially
+    # Spike on how an acceptance testing DSL could work
     Feature.class_eval do
-      # manually execute "Given" and "Then"
       def test_something
         scenario = Feature.output.expressions.first
         steps = scenario.scope.expressions
