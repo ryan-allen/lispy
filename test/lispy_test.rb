@@ -112,18 +112,35 @@ class LispyTest < Test::Unit::TestCase
   end
 
   def test_moar_lispy
-    expected = [__FILE__, ["28", :setup, []], ["29", :setup, [], [["30", :lol, []], ["31", :lol, [], [["32", :hi, []], ["33", :hi, []]]]]]]
-
+    expected = [
+      __FILE__,
+      [
+        Lispy::Expression.new(:setup, [], "29"),
+        Lispy::Expression.new(:setup, [], "30", nil,
+          Lispy::Scope.new.tap { |s1| s1.expressions = [
+            Lispy::Expression.new(:lol, [], "31"),
+            Lispy::Expression.new(:lol, [], "32", nil,
+              Lispy::Scope.new.tap { |s2| s2.expressions = [
+                Lispy::Expression.new(:hi, [], "33"),
+                Lispy::Expression.new(:hi, [], "34")
+              ]}
+            )
+          ]}
+        )
+      ]
+    ]
     assert_equal expected, @@moar_lispy
   end
 
   def test_conditionally_preserving_procs
-    quasi_sexp = @@retain_blocks
-    assert_equal :Scenario, quasi_sexp[1][1]
-    assert_equal "My first awesome scenario", quasi_sexp[1][2]
-    require 'awesome_print'
-    assert_equal :Given, quasi_sexp[1][3][0][1]
-    assert_instance_of Proc, quasi_sexp[1][3][0].last
+    ast = @@retain_blocks
+    assert_equal :Scenario, ast[1][0].symbol
+    assert_equal "My first awesome scenario", ast[1][0].args
+    given = ast[1][0].scope.expressions.first
+    assert_equal :Given, given.symbol
+    assert_equal "teh shiznit", given.args
+    assert_instance_of Proc, given.proc
+    assert_nil given.scope
   end
 
   def test_opt_in_parsing
