@@ -8,32 +8,23 @@ class Lispy
   end
 
   def method_missing(sym, *args, &block)
-    args = (args.length == 1 ? args.first : args)
-    @scope.last << [sym, args]
+    args = args.length == 1 ? args.first : args
     if block
-      # there is some simpler recursive way of doing this, will fix it shortly
-      if @remember_blocks_starting_with.include? sym
-        @scope.last.last << block
+      if  @opts[:retain_blocks_for] && @opts[:retain_blocks_for].include?(sym)
+        block_val = block
       else
-        @scope.last.last << []
-        @scope.push(@scope.last.last.last)
-        instance_exec(&block)
-        @scope.pop
+        block_val = Lispy.new.to_data(@opts,&block)
       end
+      @output <<  [sym, args,block_val]
+    else
+      @output <<  [sym, args]
     end
   end
 
   def to_data(opts = {}, &block)
-    @remember_blocks_starting_with =  Array(opts[:retain_blocks_for])
-    _(&block)
-    @output
-  end
-  
-private
-  
-  def _(&block)
+    @opts = opts
+    #@remember_blocks_starting_with =  ray(opts[:retain_blocks_for])
     @output = []
-    @scope = [@output]
     instance_exec(&block)
     @output
   end
