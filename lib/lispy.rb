@@ -1,40 +1,74 @@
-class Lispy
-  VERSION = '0.0.5'
+module Lispy
+  class Scope < Struct.new(:expressions); end
+  class Expression < Struct.new(:symbol, :args, :lineno, :proc, :scope); end
+  class Output < Struct.new(:file, :expressions); end
 
-  @@methods_to_keep = /^__/, /class/, /instance_/, /method_missing/, /object_id/
+  VERSION = '0.2.0'
+
+  METHODS_TO_KEEP = /^__/, /class/, /instance_/, /method_missing/, /object_id/
 
   instance_methods.each do |m|
-    undef_method m unless @@methods_to_keep.find { |r| r.match m }
+    undef_method m unless METHODS_TO_KEEP.find { |r| r.match m }
+  end
+
+  def acts_lispy(opts = {})
+    @@remember_blocks_starting_with = Array(opts[:retain_blocks_for])
+    @@only = Array(opts[:only])
+    @@exclude = Array(opts[:except])
+    @@output = Output.new
+    @@file = nil
+    @stack = []
+  end
+
+  def output
+    if @current_scope
+      @@output.expressions = @current_scope.expressions
+    end
+    @@output
+  end
+
+  def file=(file)
+    unless @@file
+      @@file = file
+      @@output.file = @@file
+    end
   end
 
   def method_missing(sym, *args, &block)
+    caller[0] =~ (/(.*):(.*):in?/)
+    file, lineno = $1, $2
+    self.file = file
+
+    if !@@only.empty? && !@@only.include?(sym)
+      fail(NoMethodError, sym.to_s)
+    end
+    if !@@exclude.empty? && @@exclude.include?(sym)
+      fail(NoMethodError, sym.to_s)
+    end
+
     args = (args.length == 1 ? args.first : args)
-    @scope.last << [sym, args]
+    @current_scope ||= Scope.new([])
+    @current_scope.expressions << Expression.new(sym, args, lineno)
     if block
       # there is some simpler recursive way of doing this, will fix it shortly
-      if @remember_blocks_starting_with.include? sym
-        @scope.last.last << block
+      if @@remember_blocks_starting_with.include? sym
+        @current_scope.expressions.last.proc = block
       else
-        @scope.last.last << []
-        @scope.push(@scope.last.last.last)
-        instance_exec(&block)
-        @scope.pop
+        nest(&block)
       end
     end
   end
 
-  def to_data(opts = {}, &block)
-    @remember_blocks_starting_with =  Array(opts[:retain_blocks_for])
-    _(&block)
-    @output
-  end
-  
 private
-  
-  def _(&block)
-    @output = []
-    @scope = [@output]
+  def nest(&block)
+    @stack.push @current_scope
+
+    new_scope = Scope.new([])
+    @current_scope.expressions.last.scope = new_scope
+    @current_scope = new_scope
+
     instance_exec(&block)
-    @output
+
+    @current_scope = @stack.pop
   end
 end
